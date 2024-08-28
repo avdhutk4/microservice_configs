@@ -1,0 +1,71 @@
+server:
+  port: 9002
+
+spring:
+  application:
+    name: USER-SERVICE
+  zipkin:
+    base-url: http://127.0.0.1:9411
+  datasource:
+    url: jdbc:mysql://localhost:3306/MicroService_exampleUser
+    username: root
+    password: root
+    driver-class-name: com.mysql.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    instance:
+      hostname: localhost
+
+# 1st will add the configuration for the actuator
+# enabling the circuitbreaker endpoit
+# expose the health endpoint
+#always show details of health endpoint
+management:
+  health:
+    circuitbreakers:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
+
+
+resilience4J:
+  circuitbreaker:
+    instances:
+      USER_DEPT:
+        registerHealthIndicator: true
+        eventConsumerBufferSize: 10
+        failureRateThreshold: 50
+        minimumNumberOfCalls: 5
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowSize: 10
+        slidingWindowType: COUNT_BASED
+  retry:
+    instances:
+      USER_DEPTRET:
+        registerHealthIndicator: true
+        maxRetryAttempts: 3
+        waitDuration: 10s
+  ratelimiter:
+    instances:
+      USER_DEPTRATE:
+        registerHealthIndicator: true
+        limitForPeriod: 10
+        limitRefreshPeriod: 10s
+        timeOutDuration: 3s
